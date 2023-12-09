@@ -11,7 +11,7 @@
 import pandas as pd
 
 path = '7/test_input.txt'
-#path = '7/input.txt'
+path = '7/input.txt'
 #path = '7/test_input2.txt'
 
 def find_multiple_occurrences(s):
@@ -48,7 +48,7 @@ def high_card_value(hand):
     hand = hand.replace('A','e')
     hand = hand.replace('K','d')
     hand = hand.replace('Q','c')
-    hand = hand.replace('J','b')
+    hand = hand.replace('J','1') #Joker
     hand = hand.replace('T','a')
     hand = hand.replace('T','a')
     
@@ -92,6 +92,7 @@ print(df)
 
 #iterate through the hands in the df
 for index, row in df.iterrows(): 
+    joker_count = 0
     print(row)
     (multiple_occurencies, counts) = find_multiple_occurrences(row['hand'])
     print(multiple_occurencies)
@@ -103,11 +104,12 @@ for index, row in df.iterrows():
     df.at[index, 'rank'] = int(hex_hand,16)
     df.at[index, 'hexrank'] = hex_hand
 
-    if 'J' in multiple_occurencies:
-        #get the index for the 'J' in the multiple_occurencies list
-        joker_index = multiple_occurencies.index('J')
-        #get the count for the 'J' in the counts list
-        joker_count = counts[joker_index]
+    if 'J' in row['hand']:
+        if 'J' in multiple_occurencies:
+            joker_count = counts[multiple_occurencies.index('J')]
+        else:
+            joker_count = 1
+
         print('joker')
         print(f"joker_count: {joker_count}")
 
@@ -135,6 +137,54 @@ for index, row in df.iterrows():
         df.at[index, 'strength'] = 1
 
     #iterate through the jokers :)
+    
+    #go through the cases where there is a joker
+    if joker_count == 5:
+        print("five jokers")
+        #already correct.
+    elif joker_count == 4:
+        #makes five of a kind
+        df.at[index, 'strength'] = 7
+    elif joker_count == 3:
+        if len(multiple_occurencies) == 2: 
+            #five of a kind
+            df.at[index, 'strength'] = 7
+        elif len(multiple_occurencies) == 1:
+            #makes four of a kind
+            df.at[index, 'strength'] = 6
+        else:
+            print('error')
+            exit()
+    elif joker_count == 2:
+        if highest_count == 3:  #2 jokers and three of a kind
+            #makes five of a kind
+            df.at[index, 'strength'] = 7
+        elif len(multiple_occurencies) == 2: #2 jokers and two pair
+            #makes four of a kind
+            df.at[index, 'strength'] = 6
+        elif len(multiple_occurencies) == 1: #only jokers
+            #makes three of a kind
+            df.at[index, 'strength'] = 4
+        else:
+            print('error')
+            exit()
+    elif joker_count == 1: 
+        if highest_count == 4:
+            #makes five of a kind
+            df.at[index, 'strength'] = 7
+        elif highest_count == 3:
+            #makes four of a kind
+            df.at[index, 'strength'] = 6
+        elif len(multiple_occurencies) == 2:
+            #makes full house
+            df.at[index, 'strength'] = 5
+        elif len(multiple_occurencies) == 1:
+            #makes three of a kind
+            df.at[index, 'strength'] = 4
+        elif len(multiple_occurencies) == 0:
+            #makes one pair
+            df.at[index, 'strength'] = 2
+
 
     print(df)
 
