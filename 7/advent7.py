@@ -69,25 +69,38 @@ df = pd.DataFrame(lines,columns=['hand', 'bid'])
 #insert lines into a df with columns: hand, bid
 print(lines)
 print(df)
+
+#cast bid column to int
+df['bid'] = df['bid'].astype('int64')
+
 #add strength column to df
 # add two columns to the dataframe strength and rank
 df['strength'] = 0
 df['strength'] = df['strength'].astype('int64')
-df['rank'] = 10
+df['hexrank'] = 0
+df['hexrank'] = df['hexrank'].astype('int64')
+df['rank'] = 0
 df['rank'] = df['rank'].astype('int64')
+df['totalrank'] = 0
+df['totalrank'] = df['totalrank'].astype('int64')
+df['winning'] = 0
+df['winning'] = df['winning'].astype('int64')
+
 print(df)
+
 
 #iterate through the hands in the df
 for index, row in df.iterrows(): 
     print(row)
     (multiple_occurencies, counts) = find_multiple_occurrences(row['hand'])
     print(multiple_occurencies)
-    #print(counts)
+    print(counts)
     #print(type(counts))
-    counts = counts[0]
+    counts = max(counts)
     hex_hand = high_card_value(row['hand'])
     #print(f"hex_value: {hex_hand}")
     df.at[index, 'rank'] = int(hex_hand,16)
+    df.at[index, 'hexrank'] = hex_hand
 
     if counts == 5: #five of a kind
         print('five of a kind')
@@ -111,6 +124,7 @@ for index, row in df.iterrows():
         print('high card')
         df.at[index, 'strength'] = 1
 
+    #iterate through the jokers :)
 
     print(df)
 
@@ -156,21 +170,16 @@ for index, row in df.iterrows():
 df = df.sort_values(by=['strength', 'rank'], ascending=True)
 print(df)
 
+#add totalrank column to df with number 1 to len of df rows
+df['totalrank'] = range(1, len(df) + 1)
+print(df)
 
-total_rank = 1
-winnings = 0
+#calc winning column as the product of totalrank and bid
+df['winning'] = df['totalrank'] * df['bid']
 
-print(df.head)
-print(df.tail)
+print(df)
 
-for index, row in df.iterrows(): 
-    winnings += total_rank * int(row['bid'])
-    if total_rank < 10 or total_rank > 990:
-        print(f"hand: {row['hand']}")
-        print(f"total_rank: {total_rank}")
-        print(f"bid: {row['bid']}")
+#sum the winning column as total winnings
+total_winnings = df['winning'].sum()
+print(f"total_winnings: {total_winnings}")  
 
-    #print(index)
-    total_rank += 1
-    
-print(winnings)
