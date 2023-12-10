@@ -2,7 +2,7 @@ import pandas as pd
 
 path = '5/test_input.txt'
 path = '5/input.txt'
-#path = '5/test_input2.txt' #adding seeds in the beginning and in the end. removing 0 in the first conversion step
+#path = '5/test_input3.txt' #adding seeds in the beginning and in the end. removing 0 in the first conversion step
 
 location = 99999999999999999
 
@@ -49,11 +49,13 @@ def calc_translation_step2(df, seed_list):
     k=0
     #print(df)
     while k < len(seed_list):
+        #print(f"seed_list: {seed_list}")
+        #print(f"new_seed_list: {new_seed_list}")
         #seed_list[k].sort_values(by='seed', inplace=True) #this one is wrong
         seed = seed_list[k]['seed'].iloc[0]
         seed_range = seed_list[k]['range'].iloc[0]
         seed_range_end = seed + seed_range -1
-        print(f"\n\nseed, seed_range_end:\t\t\t {seed}, {seed_range_end}")
+        #print(f"\n\nseed, seed_range_end:\t\t\t {seed}, {seed_range_end}")
         #print(df)
         # Find the index of the first row where the value in the column is less than the given number
         index = (df['range_end'] >= seed).idxmax()
@@ -61,41 +63,41 @@ def calc_translation_step2(df, seed_list):
         steps_in = seed - df.loc[index, 'source']
 
         if index == 0: #check for the case that it is larger than the last range
-            print("index is 0")
+            #print("index is 0")
             highest_index = df.index.max()
-            print(f"highest_index: {highest_index}")
+            #print(f"highest_index: {highest_index}")
             if seed > df.loc[highest_index, 'range_end']:
-                print("seed is larger than last range translated to same seed")
+                #print("seed is larger than last range translated to same seed")
                 add_new_seed(seed, seed_range)
                 k+=1
                 continue
 
         if seed < df.loc[index, 'source']:
-            print(f"index: {index}")
-            print("seed is smaller than the source - index 0 indicates before first source")
-            print("we are in between bands, this index gives higher source than seed")
+            # print(f"index: {index}")
+            # print("seed is smaller than the source - index 0 indicates before first source")
+            # print("we are in between bands, this index gives higher source than seed")
             if seed_range_end < df.loc[index, 'source']:
-                print("falls within gap - translate to same seed")
+                #print("falls within gap - translate to same seed")
                 add_new_seed(seed, seed_range)
                 k+=1
                 continue
             elif seed_range_end >= df.loc[index, 'source']:
-                print("Larger than gap - split up")
+                #print("Larger than gap - split up")
                 add_new_seed(seed, df.loc[index, 'source']-seed) #add what fits to new seed
-                add_seed(df.loc[index, 'source'], seed_range_end-(df.loc[index, 'range_end'])) #add the rest to the seeds
+                add_seed(df.loc[index, 'source'], seed + seed_range -df.loc[index, 'source']) #add the rest to the seeds
                 k+=1
                 continue
 
         #Does the seed range fall in the range of the row?
         if seed_range_end > df.loc[index, 'range_end']:
-            print("Larger than range range - split up")
-            add_new_seed(seed, df.loc[index, 'range_end']) #add what fits to new seed
+            #print("Larger than range range - split up")
+            add_new_seed(seed, df.loc[index, 'range_end']-seed+1) #add what fits to new seed
             add_seed(df.loc[index, 'range_end']+1, seed_range_end-(df.loc[index, 'range_end'])) #add the rest to the seeds
             k+=1
             continue
             #if the range is bigger than the range of the row, add the seed to the new seeds
         elif seed_range_end <= df.loc[index, 'range_end']:
-            print("falls within range - translate")
+            #print("falls within range - translate")
             #new_seed_range = row['range_length']-steps_in
             add_new_seed(df.loc[index,'destination'] + steps_in, seed_range) #translate the starting seed to the new seed
             k+=1
@@ -103,6 +105,10 @@ def calc_translation_step2(df, seed_list):
 
         print("error")
         exit()
+    
+    print(f"Lenght of seeds: {len(seed_list)}")
+    #print(f"seeds: {seed_list}")
+    print(f"new_seeds: {new_seed_list}")
 
 
 
@@ -239,6 +245,8 @@ for step in conversion_steps:
         print(f"\n\nnew_seeds: {new_seed_list}")
         #seed_list = new_seed_list
         seed_list = [df.copy() for df in new_seed_list]
+        #sort seed_list by source
+        seed_list.sort(key=get_lowest_seed_value)
         new_seed_list = []
         stosp+=1
         print(f"\n\nAFTER STEP new seeds: {seed_list}")

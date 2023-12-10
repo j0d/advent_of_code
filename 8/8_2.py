@@ -81,7 +81,7 @@ next_steps = [16897, 11911, 14681, 13019, 21883, 19667]
 
 #final_steps = [21883, 19667, 14681, 16897, 13019, 11911]
 
-exit()
+# exit()
 
 diff_xy = first_steps[0] - first_steps[1]
 diff_yz = first_steps[1] - first_steps[2]
