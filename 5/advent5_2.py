@@ -10,8 +10,10 @@ location = 99999999999999999
 columns = ['destination', 'source', 'range_length']
 seed_columns = ['seed', 'range']
 conversion_steps = []
-new_seed_list = []
-seed_list = []
+#new_seed_list = []
+#seed_list = []
+seeds = pd.DataFrame(columns=seed_columns)
+new_seeds = pd.DataFrame(columns=seed_columns)
 
 def parse_numbers(list_of_strings):
     #print(list_of_strings)
@@ -34,33 +36,42 @@ def map_source_to_destination(df, seed) -> int:
     return destination
 
 def add_seed(seed, range):
-    seed_list.append(pd.DataFrame([[seed,range]], columns=seed_columns))
+    global seeds
+    #add the seed and range to the df of seeds
+    new_seed = pd.DataFrame([[seed, range]], columns=seed_columns)
+    #print(f"new_seed: {new_seed}")
+    seeds = pd.concat([seeds, new_seed], ignore_index=True)
     return
 
 def add_new_seed(seed, range):
-    new_seed_list.append(pd.DataFrame([[seed,range]], columns=seed_columns))
+    global new_seeds
+    #add the seed and range to the df of seeds
+    new_seed = pd.DataFrame([[seed, range]], columns=seed_columns)
+    #print(f"new_seed: {new_seed}")
+    new_seeds = pd.concat([seeds, new_seed], ignore_index=True)
     return
 
 def get_lowest_seed_value(df):
     return df['seed'].iloc[0]
 
 
-def calc_translation_step2(df, seed_list):
+def calc_translation_step2(df, seeds):
     k=0
     #print(df)
-    while k < len(seed_list):
-        #print(f"seed_list: {seed_list}")
-        #print(f"new_seed_list: {new_seed_list}")
-        #seed_list[k].sort_values(by='seed', inplace=True) #this one is wrong
-        seed = seed_list[k]['seed'].iloc[0]
-        seed_range = seed_list[k]['range'].iloc[0]
+    #iterate through the seeds
+    for index, row in seeds.iterrows():
+        #print(f"seeds: {seeds}")
+        #print(f"new_seeds: {new_seeds}")
+        #print(f"row: {row}")
+        seed = row['seed']
+        seed_range = row['range']
         seed_range_end = seed + seed_range -1
         #print(f"\n\nseed, seed_range_end:\t\t\t {seed}, {seed_range_end}")
         #print(df)
         # Find the index of the first row where the value in the column is less than the given number
         index = (df['range_end'] >= seed).idxmax()
-        print(f"index: {index}, range_start, range_end:\t {df.loc[index, 'source']}, {df.loc[index, 'range_end']}")
-        steps_in = seed - df.loc[index, 'source']
+        #print(f"index: {index}, range_start, range_end:\t {df.loc[index, 'source']}, {df.loc[index, 'range_end']}")
+        steps_in = seed - df.loc[index, 'source'] #negative if before lowest source
 
         if index == 0: #check for the case that it is larger than the last range
             #print("index is 0")
@@ -106,9 +117,9 @@ def calc_translation_step2(df, seed_list):
         print("error")
         exit()
     
-    print(f"Lenght of seeds: {len(seed_list)}")
+    print(f"Lenght of seeds: {len(seeds)}")
     #print(f"seeds: {seed_list}")
-    print(f"new_seeds: {new_seed_list}")
+    print(f"new_seeds: {new_seeds}")
 
 
 
@@ -199,11 +210,10 @@ with open(path, 'r') as file:
             seeds = line.split(':')[1].split(' ')
             seeds = parse_numbers(seeds)
             l=0
-            while l < len(seeds):
-                add_seed(seeds[l], seeds[l+1])
-                l+=2
-            #print(f"seeds: {seeds}")
-            #print(f"Length of seeds: {len(seeds)}")
+            #create a dataframe for the seed list where every even number is the seed and every odd number is the range
+            seeds = [seeds[i:i+2] for i in range(0, len(seeds), 2)]
+            seeds = pd.DataFrame(seeds, columns=seed_columns)
+            seeds.sort_values(by='seed', inplace=True)
             df = pd.DataFrame(columns=columns)
         elif line[0].isdigit():
             #print(i)
@@ -231,7 +241,7 @@ with open(path, 'r') as file:
 ### all maps read in. Now to convert the seeds    
 print(f"number of conversion_steps: {len(conversion_steps)}")   
 print(f"first conversion_step: {conversion_steps[1]}") 
-print(f"seeds: {seed_list}")
+print(f"seeds: {seeds}")
 
 
 stosp = 0
@@ -239,28 +249,28 @@ for step in conversion_steps:
 #step = conversion_steps[1]
     #if step is non empty df
     if not step.empty:
-        print(f"\n\nNEW STEP seeds: {seed_list}")
+        print(f"\n\nNEW STEP seeds: {seeds}")
         print(f"step: {step}")       
-        calc_translation_step2(step, seed_list)
-        print(f"\n\nnew_seeds: {new_seed_list}")
+        calc_translation_step2(step, seeds)
+        print(f"\n\nnew_seeds: {new_seeds}")
         #seed_list = new_seed_list
-        seed_list = [df.copy() for df in new_seed_list]
+        seeds = new_seeds.copy()
         #sort seed_list by source
-        seed_list.sort(key=get_lowest_seed_value)
+
         new_seed_list = []
         stosp+=1
-        print(f"\n\nAFTER STEP new seeds: {seed_list}")
+        print(f"\n\nLen of seeds {len(seeds)} AFTER STEP new seeds: {seeds}")
 
 
 
 
-print(f"seeds: {seed_list}")
+print(f"seeds: {seeds}")
+#print the lowest seed value
+seeds.sort_values(by='seed', inplace=True)
+#print seed of first row
+print(f"min location: {seeds['seed'].iloc[0]}")
 
-for seed in seed_list:
-    if seed['seed'].iloc[0] < location:
-        location = seed['seed'].iloc[0]
 
-print(f"min location: {location}") 
 
         
 #    for seed in seeds:

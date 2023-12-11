@@ -68,34 +68,44 @@ print(f"possible_ends: {possible_ends}")
 print(f"start_steps: {start_steps}")
 steps = 0
 
-first_steps = [21883, 19667, 14681, 16897, 13019, 11911]
-next_steps = [16897, 11911, 14681, 13019, 21883, 19667]
 
 
 
-#C = np.array(first_steps)
-#A = np.array(next_steps)
 
-#variables = np.linalg.solve(A, C)
-#print (variables)
+
+import math
+
+# Example starting values and step values
+start_values = first_steps  # Replace with your starting values
+step_values = next_steps      # Replace with your step values
+
+#mutiply each individual value with the length of the instruction
+values = [start * inst_len for start in start_values]
+print(f"values: {values}")
+
+# Compute the new values
+new_values = [start + step for start, step in zip(start_values, step_values)]
+print(new_values)
+
+# Find the LCM of the new values
+lcm_value = math.lcm(*values)
+
+print("LCM of the new values:", lcm_value)
+
+steps = first_steps[0]+next_steps[0]*lcm_value
+print(steps)
+
+
+
 
 #final_steps = [21883, 19667, 14681, 16897, 13019, 11911]
-
-# exit()
-
-diff_xy = first_steps[0] - first_steps[1]
-diff_yz = first_steps[1] - first_steps[2]
-diff_xz = first_steps[0] - first_steps[2]
-
-
 
 #step_diff = next_steps[0] - next_steps[1]
 #print(diff/step_diff)
 
-#exit()
 
 i=0
-if i ==1:
+if i == 1:
     for i in range(len(next_start)):
         #Find steps from each start to next end.
         (first_dests[i], first_steps[i], inst_indexes[i]) = find_next_dest(next_start[i], 0, instruction, inst_indexes[i])
@@ -112,20 +122,44 @@ if i ==1:
         print(f"next_steps: {next_steps}") #which end does the starts lead to.
         print(f"inst_indexes: {inst_indexes}")  
 
+#ask for user input
+#input("Press Enter to continue...")
+
+possible_starts = ['RMA', 'NXA', 'GDA', 'PLA', 'QLA', 'AAA']
+first_dests = ['FQZ', 'BBZ', 'SGZ', 'MQZ', 'VHZ', 'ZZZ']
+first_steps = [21883, 19667, 14681, 16897, 13019, 11911]
+
+# DET BLIR SAMMA NUMMER EFTER VIDARE STEG (index var bara snurrigt)
+# possible_ends = ['MQZ', 'ZZZ', 'SGZ', 'VHZ', 'FQZ', 'BBZ']
+# next_end = ['MQZ', 'ZZZ', 'SGZ', 'VHZ', 'FQZ', 'BBZ']
+# next_steps = [16897, 11911, 14681, 13019, 21883, 19667]
+
+print(f"possible_starts: {possible_starts}")
+print(f"first_dests: {first_dests}")
+print(f"first_steps: {first_steps}") #the steps it takes to get from start to first end
 
 
-final_steps = first_steps.copy()
-print(f"final_steps: {final_steps}")
+lcm_value = math.lcm(*first_steps)
 
-while len(set(final_steps)):
-    first = False
+print("LCM of the new values:", lcm_value)
+#answer 10151663816849
+
+exit()
+#print(f"final_steps: {final_steps}")
+
+while len(set(final_steps)) != 1:
     i = final_steps.index(min(final_steps))
-    final_steps[i] += next_steps[i]
+    final_steps[i] += next_steps_index[i]
 
     print(f"final_steps and len set of final steps: {final_steps}, {len(set(final_steps))}")
 exit()
 
 #start a timer to keep track of runtime
+
+
+
+start_steps = first_steps.copy()
+
 import time
 start_time = time.time()
 print(f"len(set(start_steps)): {len(set(start_steps))}")
