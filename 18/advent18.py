@@ -116,24 +116,35 @@ matrix[current_y][current_x] = '7'
 print_matrix(matrix)
 
 #write matrix to file
+
+#find dug area.
+total_area_dug = 0
+inside = 0
+last_turn = ''
+#loop through matrix to count dug area
+for i in range(len(matrix)):
+    inside = 0
+    for j in range(len(matrix[0])):
+        if matrix[i][j] == '7' and last_turn == 'L':
+            inside = 1-inside
+        if matrix[i][j] == 'J' and last_turn == 'F':
+            inside = 1-inside
+        if matrix[i][j] in ['L','J','F','7']:
+            last_turn = matrix[i][j]
+            total_area_dug += 1
+        if matrix[i][j] == '-':
+            total_area_dug += 1
+        if matrix[i][j] == '|':
+            inside = 1 - inside
+            total_area_dug += 1
+        if matrix[i][j] in ['.'] and inside == 1:
+            total_area_dug += inside
+            matrix[i][j] = '#'
+
+print(total_area_dug)
+
 with open('18/output.txt', 'w') as file:
     for row in matrix:
         for item in row:
             file.write(item)
         file.write('\n')
-
-#find dug area.
-total_area_dug = 0
-inside = 0
-#loop through matrix to count dug area
-for i in range(len(matrix)):
-    inside = 0
-    for j in range(len(matrix[0])):
-        if matrix[i][j] in ['L','J','|','F','7','-']:
-            total_area_dug += 1
-        if matrix[i][j] in ['|','7','J']:
-            inside = 1 - inside
-        if matrix[i][j] in ['.'] and inside == 1:
-            total_area_dug += 1
-
-print(total_area_dug)
